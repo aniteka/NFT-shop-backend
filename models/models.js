@@ -6,7 +6,8 @@ const User = sequelize.define('user', {
     name: { type: DataTypes.STRING, allowNull: false },
     email: { type: DataTypes.STRING, allowNull: false, unique: true },
     password: { type: DataTypes.STRING, allowNull: false },
-    bio: { type: DataTypes.TEXT, defaultValue: "DEFAULT BIO" }
+    bio: { type: DataTypes.TEXT, defaultValue: "DEFAULT BIO" },
+    role: { type: DataTypes.ENUM( 'USER', 'ADMIN' ), allowNull: false },
 })
 
 const Creator = sequelize.define('creator', {
