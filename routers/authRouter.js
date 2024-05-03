@@ -21,6 +21,18 @@ router.post('/registrationAdmin',
 
 router.post('/login', controller.login)
 
+router.put ('/updateInfo',
+    authMiddleware,
+    check("name", "Incorrect name").notEmpty(),
+    check("bio", "Incorrect bio").notEmpty(),
+    controller.updateInfo)
+
+router.put ('/updatePassword',
+    authMiddleware,
+    check("oldPassword", "Incorrect old password").isLength({min: 4, max: 20}),
+    check("newPassword", "Incorrect new password").isLength({min: 4, max: 20}),
+    controller.updatePassword)
+
 router.get('/users',
     roleMiddleware('ADMIN'),
     controller.getAll)

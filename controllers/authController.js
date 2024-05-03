@@ -32,7 +32,7 @@ class AuthController {
                     name, email, password: hashPassword, role})
 
                 const token = generateAccessToken(user.id, user.role)
-                return res.json({ token })
+                return res.json({ token, user })
             } catch (e) {
                 console.log(e)
                 return res.status(400).json( {message: "registration error" } )
@@ -55,11 +55,67 @@ class AuthController {
             }
 
             const token = generateAccessToken(user.id, user.role)
-            return res.json({ token })
+            return res.json({ token, user })
 
         } catch (e) {
             console.log(e)
             res.status(400).json( {message: "login error" } )
+        }
+    }
+
+    async updateInfo(req, res, next) {
+        try {
+            const errors = validationResult(req)
+            if(!errors.isEmpty()){
+                return res.status(400).json( { message: 'updateInfo error', ...errors } )
+            }
+            const {name: newName, bio: newBio} = req.body
+
+            const user = await User.findOne( {
+                where: { id: req.jwtDecoded.id }
+            } )
+            if(user == null)
+                return res.status(400).json( { message: "token error" } )
+
+            user.name = newName
+            user.bio = newBio
+
+            await user.save()
+
+            return res.status(200).json( { user } )
+        } catch (e) {
+            console.log(e)
+            res.status(400).json( { message: "update error" } )
+        }
+    }
+
+    async updatePassword(req, res, next) {
+        try {
+            const errors = validationResult(req)
+            if(!errors.isEmpty()){
+                return res.status(400).json( { message: 'updateInfo error', ...errors } )
+            }
+            const {oldPassword, newPassword} = req.body
+
+            const user = await User.findOne( {
+                where: { id: req.jwtDecoded.id }
+            } )
+            if(user == null)
+                return res.status(400).json( { message: "token error" } )
+
+            const validPassword = bctypt.compareSync(oldPassword, user.password)
+            if(!validPassword) {
+                return res.status(400).json( { message: 'password is incorrect'} )
+            }
+
+            user.password = bcrypt.hashSync(newPassword, 7)
+
+            await user.save()
+
+            return res.status(200).json( { user } )
+        } catch (e) {
+            console.log(e)
+            res.status(400).json( { message: "update error" } )
         }
     }
 
