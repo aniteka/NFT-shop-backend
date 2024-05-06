@@ -3,12 +3,17 @@ const bcrypt = require('bcrypt')
 const {validationResult} = require("express-validator");
 const bctypt = require("bcrypt");
 const jwt = require("jsonwebtoken")
+const ApiError = require("../errors/apiError");
 
 const generateAccessToken = (id, role) => {
     const payload = {
         id, role
     }
-    return jwt.sign(payload, process.env.JWT_SECRETKEY, {expiresIn: "24h"})
+    return jwt.sign(payload, process.env.JWT_SECRETKEY, {expiresIn: process.env.JWT_TOKEN_EXPIRES_IN || "1h"})
+}
+
+const messagesFromErrors = (errors) => {
+    return errors.array().map(value => value.msg)
 }
 
 class AuthController {
@@ -17,7 +22,7 @@ class AuthController {
             try {
                 const errors = validationResult(req)
                 if(!errors.isEmpty()){
-                    return res.status(400).json( { message: 'registration error', ...errors } )
+                    return next(ApiError.badRequest( ["registration error", ...messagesFromErrors(errors)] ))
                 }
 
                 const {name, email, password} = req.body
@@ -25,7 +30,7 @@ class AuthController {
                     where: {email}
                 })
                 if(candidate) {
-                    return res.status(400).json( { message: 'already registered' } )
+                    return next(ApiError.badRequest(["already registered"]))
                 }
                 const hashPassword = bcrypt.hashSync(password, 7)
                 const user = await User.create({
@@ -35,7 +40,7 @@ class AuthController {
                 return res.json({ token, user })
             } catch (e) {
                 console.log(e)
-                return res.status(400).json( {message: "registration error" } )
+                return next(ApiError.internal(["registration error"]))
             }
         }
     }
@@ -47,11 +52,11 @@ class AuthController {
                 where: {email},
             })
             if(!user) {
-                return res.status(400).json( { message: 'cant find user with this email'} )
+                return next(ApiError.badRequest(["cant find user with this email"]))
             }
             const validPassword = bctypt.compareSync(password, user.password)
             if(!validPassword) {
-                return res.status(400).json( { message: 'password is incorrect'} )
+                return next(ApiError.badRequest(["password is incorrect"]))
             }
 
             const token = generateAccessToken(user.id, user.role)
@@ -59,7 +64,7 @@ class AuthController {
 
         } catch (e) {
             console.log(e)
-            res.status(400).json( {message: "login error" } )
+            return next(ApiError.internal(["login error"]))
         }
     }
 
@@ -67,19 +72,20 @@ class AuthController {
         try {
             const errors = validationResult(req)
             if(!errors.isEmpty()){
-                return res.status(400).json( { message: 'updateInfo error', ...errors } )
+                return next(ApiError.badRequest( ["updateInfo error", ...messagesFromErrors(errors)] ))
             }
             const {name: newName, bio: newBio, email: newEmail} = req.body
 
             const user = await User.findOne( {
                 where: { id: req.jwtDecoded.id }
             } )
-            if(user == null)
-                return res.status(400).json( { message: "token error" } )
+            if(user == null) {
+                return next(ApiError.badRequest( ["token error"] ))
+            }
 
             if(newEmail) {
                 if(await User.findOne({ where: { email: newEmail } })) {
-                    return res.status(400).json( { message: "invalid email" } )
+                    return next(ApiError.badRequest( ["invalid email"] ))
                 }
                 user.email = newEmail || user.email
             }
@@ -92,7 +98,7 @@ class AuthController {
             return res.status(200).json( { user } )
         } catch (e) {
             console.log(e)
-            res.status(400).json( { message: "update error" } )
+            return next(ApiError.internal(["updateInfo error"]))
         }
     }
 
@@ -100,19 +106,20 @@ class AuthController {
         try {
             const errors = validationResult(req)
             if(!errors.isEmpty()){
-                return res.status(400).json( { message: 'updateInfo error', ...errors } )
+                return next(ApiError.badRequest( ["updatePassword error", ...messagesFromErrors(errors)] ))
             }
             const {oldPassword, newPassword} = req.body
 
             const user = await User.findOne( {
                 where: { id: req.jwtDecoded.id }
             } )
-            if(user == null)
-                return res.status(400).json( { message: "token error" } )
+            if(user == null) {
+                return next(ApiError.badRequest( ["token error"] ))
+            }
 
             const validPassword = bctypt.compareSync(oldPassword, user.password)
             if(!validPassword) {
-                return res.status(400).json( { message: 'password is incorrect'} )
+                return next(ApiError.badRequest( ["password is incorrect"] ))
             }
 
             user.password = bcrypt.hashSync(newPassword, 7)
@@ -122,7 +129,7 @@ class AuthController {
             return res.status(200).json( { user } )
         } catch (e) {
             console.log(e)
-            res.status(400).json( { message: "update error" } )
+            return next(ApiError.internal(["updatePassword error"]))
         }
     }
 
@@ -132,7 +139,7 @@ class AuthController {
             return res.json(user)
         } catch (e) {
             console.log(e)
-            res.status(400).json( {message: "getAll error" } )
+            return next(ApiError.internal(["getAll error"]))
         }
     }
 
@@ -143,12 +150,12 @@ class AuthController {
                 where: {id}
             })
             if(!user) {
-                return res.status(400).json( { message: `id ${id} is incorrect` } )
+                return next(ApiError.badRequest([`id ${id} is incorrect`]))
             }
             return res.json(user)
         } catch (e) {
             console.log(e)
-            res.status(400).json( {message: "getOne error" } )
+            return next(ApiError.internal(["getOne error"]))
         }
     }
 }
