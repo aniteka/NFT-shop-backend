@@ -1,6 +1,6 @@
 ﻿const {Router} = require('express')
 const controller = require('../controllers/authController')
-const {check} = require('express-validator')
+const {check, body} = require('express-validator')
 const authMiddleware = require('../middleware/authMiddleware')
 const roleMiddleware = require('../middleware/roleMiddleware')
 
@@ -23,8 +23,7 @@ router.post('/login', controller.login)
 
 router.put ('/updateInfo',
     authMiddleware,
-    check("name", "Incorrect name").notEmpty(),
-    check("bio", "Incorrect bio").notEmpty(),
+    check("email", "Incorrect email").if((email, _) => email).isEmail(),
     controller.updateInfo)
 
 router.put ('/updatePassword',

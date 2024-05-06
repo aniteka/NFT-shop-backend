@@ -69,7 +69,7 @@ class AuthController {
             if(!errors.isEmpty()){
                 return res.status(400).json( { message: 'updateInfo error', ...errors } )
             }
-            const {name: newName, bio: newBio} = req.body
+            const {name: newName, bio: newBio, email: newEmail} = req.body
 
             const user = await User.findOne( {
                 where: { id: req.jwtDecoded.id }
@@ -77,8 +77,15 @@ class AuthController {
             if(user == null)
                 return res.status(400).json( { message: "token error" } )
 
-            user.name = newName
-            user.bio = newBio
+            if(newEmail) {
+                if(await User.findOne({ where: { email: newEmail } })) {
+                    return res.status(400).json( { message: "invalid email" } )
+                }
+                user.email = newEmail || user.email
+            }
+
+            user.name = newName || user.name
+            user.bio = newBio || user.bio
 
             await user.save()
 
