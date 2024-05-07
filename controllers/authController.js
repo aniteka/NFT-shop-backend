@@ -1,19 +1,15 @@
 ﻿const { User } = require('../models/models')
 const bcrypt = require('bcrypt')
 const {validationResult} = require("express-validator");
-const bctypt = require("bcrypt");
 const jwt = require("jsonwebtoken")
 const ApiError = require("../errors/apiError");
+const {messagesFromErrors} = require("../utils")
 
 const generateAccessToken = (id, role) => {
     const payload = {
         id, role
     }
     return jwt.sign(payload, process.env.JWT_SECRETKEY, {expiresIn: process.env.JWT_TOKEN_EXPIRES_IN || "1h"})
-}
-
-const messagesFromErrors = (errors) => {
-    return errors.array().map(value => value.msg)
 }
 
 class AuthController {
