@@ -1,9 +1,9 @@
 ﻿const { User } = require('../models/models')
-const bcrypt = require('bcrypt')
 const {validationResult} = require("express-validator");
 const jwt = require("jsonwebtoken")
 const ApiError = require("../errors/apiError");
 const {messagesFromErrors} = require("../utils")
+const bcrypt = require("bcrypt");
 
 const generateAccessToken = (id, role) => {
     const payload = {
@@ -50,7 +50,7 @@ class AuthController {
             if(!user) {
                 return next(ApiError.badRequest(["cant find user with this email"]))
             }
-            const validPassword = bctypt.compareSync(password, user.password)
+            const validPassword = bcrypt.compareSync(password, user.password)
             if(!validPassword) {
                 return next(ApiError.badRequest(["password is incorrect"]))
             }
@@ -113,7 +113,7 @@ class AuthController {
                 return next(ApiError.badRequest( ["token error"] ))
             }
 
-            const validPassword = bctypt.compareSync(oldPassword, user.password)
+            const validPassword = bcrypt.compareSync(oldPassword, user.password)
             if(!validPassword) {
                 return next(ApiError.badRequest( ["password is incorrect"] ))
             }
