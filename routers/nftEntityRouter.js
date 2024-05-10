@@ -9,7 +9,6 @@ router.post("/create/",
     authMiddleware,
     check("name", "Invalid name").notEmpty(),
     check("price", "Invalid price").isDecimal(),
-    check("image", "Invalid image").notEmpty(),
     check("tags", "Invalid tags").isArray(),
     nftCreator.create)
 

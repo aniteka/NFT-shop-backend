@@ -2,6 +2,8 @@
 const ApiError = require("../errors/apiError");
 const {messagesFromErrors} = require("../utils");
 const {NftEntity, Tag, Creator} = require("../models/models");
+const uuid = require("uuid")
+const path = require("path")
 
 class NftEntityController {
     async create(req, res, next) {
@@ -11,7 +13,14 @@ class NftEntityController {
                 return next(ApiError.badRequest(["nftCreate error", ...messagesFromErrors(errors)]))
             }
 
-            const {name, description, price, image, tags} = req.body
+            const {name, description, price, tags} = req.body
+
+            const {image = null} = req.files
+            if(!image) {
+                return next(ApiError.badRequest(["nftCreate error", "image is not set"]))
+            }
+            const imageFilename = uuid.v4() + ".jpg"
+            await image.mv(path.resolve(__dirname, "..", process.env.STATIC_FOLDER, imageFilename))
 
             const {id: ownerId} = req.jwtDecoded
             let creator = await Creator.findOne({where: {userId: ownerId}})
@@ -44,7 +53,8 @@ class NftEntityController {
             }
 
             let nftEntity = await NftEntity.create({
-                name, description, price, hash, ownerId, creatorId: creator.id
+                name, description, price, hash, ownerId, creatorId: creator.id,
+                image: imageFilename
             })
             await nftEntity.addTag(ftags)
 
