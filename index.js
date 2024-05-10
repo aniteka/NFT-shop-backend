@@ -6,6 +6,7 @@ const models = require('./models/models')
 const apiRouter = require('./routers/index')
 const cors = require('cors')
 const errorHandlerMiddleware = require('./middleware/errorHandlerMiddleware')
+const {NftEntity} = require("./models/models");
 
 const app = express()
 const PORT = process.env.PORT || 5000

@@ -18,7 +18,6 @@ const NftEntity = sequelize.define('nftEntity', {
     id: { type: DataTypes.INTEGER, primaryKey:true, autoIncrement: true },
     name: { type: DataTypes.STRING, allowNull: false },
     description: { type: DataTypes.TEXT, defaultValue: "DEFAULT BIO" },
-    creationDate: { type:DataTypes.DATE, allowNull: false },
     price: { type:DataTypes.FLOAT, allowNull: false },
     hash: { type:DataTypes.STRING, allowNull: false, unique: true },
     image: { type:DataTypes.STRING, /*allowNull: false TODO REMOVE */ }

@@ -1,7 +1,7 @@
 ﻿const {validationResult} = require("express-validator");
 const ApiError = require("../errors/apiError");
 const {messagesFromErrors} = require("../utils");
-const {NftEntity, Tag} = require("../models/models");
+const {NftEntity, Tag, Creator} = require("../models/models");
 
 class NftEntityController {
     async create(req, res, next) {
@@ -11,26 +11,31 @@ class NftEntityController {
                 return next(ApiError.badRequest(["nftCreate error", ...messagesFromErrors(errors)]))
             }
 
-            const {name, description, creationDate, price, hash, image, creatorId, tags} = req.body
+            const {name, description, price, image, tags} = req.body
 
-            if(await NftEntity.findOne({ where: {hash} })){
-                return next(ApiError.badRequest(["invalid hash"]))
+            const {id: ownerId} = req.jwtDecoded
+            let creator = await Creator.findOne({where: {userId: ownerId}})
+            if(!creator) {
+                creator = await Creator.create({userId: ownerId})
+            }
+
+            let hash = Math.random().toString(36);
+            while(await NftEntity.findOne({ where: {hash} })){
+                hash = Math.random().toString(36)
             }
 
             let ftags = []
             for (let tag of tags) {
                 let ftag
                 if(typeof tag == "string") {
-                    let ftag = await Tag.findOne({where: {name: tag}})
+                    ftag = await Tag.findOne({where: {name: tag}})
                     if(!ftag)
                     {
                         ftag = await Tag.create( {name: tag} )
                     }
-                    tags.splice(tags.indexOf(tag), 1)
-                    tags.push(ftag.id)
                 }
                 else {
-                    let ftag = await Tag.findOne({where: {id: tag}})
+                    ftag = await Tag.findOne({where: {id: tag}})
                     if(!ftag) {
                         return next(ApiError.badRequest([`Bad tag id ${ftag}`]))
                     }
@@ -39,7 +44,7 @@ class NftEntityController {
             }
 
             let nftEntity = await NftEntity.create({
-                name, description, creationDate, price, hash, image, ownerId: creatorId, creatorId
+                name, description, price, hash, ownerId, creatorId: creator.id
             })
             await nftEntity.addTag(ftags)
 
