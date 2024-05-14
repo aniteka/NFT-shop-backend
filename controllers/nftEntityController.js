@@ -1,7 +1,7 @@
 ﻿const {validationResult} = require("express-validator");
 const ApiError = require("../errors/apiError");
 const {messagesFromErrors} = require("../utils");
-const {NftEntity, Tag, Creator} = require("../models/models");
+const {NftEntity, Tag, Creator, User} = require("../models/models");
 const uuid = require("uuid")
 const path = require("path")
 
@@ -62,6 +62,35 @@ class NftEntityController {
         } catch (e) {
             console.log(e)
             return next(ApiError.internal(["nftCreate error"]))
+        }
+    }
+
+    async getAllByUserId(req, res, next) {
+        try {
+            const errors = validationResult(req)
+            if (!errors.isEmpty()) {
+                return next(ApiError.badRequest(["nftGetAllByUserId error", ...messagesFromErrors(errors)]))
+            }
+
+            let {count, page} = req.query
+            count = parseInt(count) || 10
+            page = parseInt(page) || 1
+            const offset = page * count - count
+
+            const {userId} = req.params
+            const user = await User.findOne({where: {id: userId}})
+            if(!user)
+                return next(ApiError.badRequest(["nftGetAllByUserId", "bad user id"]))
+
+            const entities = await NftEntity.findAll(
+                {where: {ownerId: userId},
+                    limit: count,
+                    offset})
+
+            return res.status(200).json([...entities])
+        } catch (e) {
+            console.log(e)
+            return next(ApiError.internal(["nftGetAllByUserId error"]))
         }
     }
 }
