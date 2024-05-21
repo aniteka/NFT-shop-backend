@@ -1,9 +1,10 @@
 ﻿const {validationResult} = require("express-validator");
 const ApiError = require("../errors/apiError");
 const {messagesFromErrors} = require("../utils");
-const {NftEntity, Tag, Creator, User} = require("../models/models");
+const {NftEntity, Tag, Creator, User, NftEntity_Tag} = require("../models/models");
 const uuid = require("uuid")
 const path = require("path")
+const {Op, Sequelize} = require("sequelize");
 
 class NftEntityController {
     async create(req, res, next) {
@@ -65,6 +66,25 @@ class NftEntityController {
         }
     }
 
+    async getByHash(req, res, next) {
+        try {
+            const errors = validationResult(req)
+            if (!errors.isEmpty()) {
+                return next(ApiError.badRequest(["nftGetByHash error", ...messagesFromErrors(errors)]))
+            }
+
+            const {hash} = req.params
+            const entity = await NftEntity.findOne({where: {hash}})
+            if(!entity)
+                return next(ApiError.badRequest(["nftGetByHash error", "bad hash"]))
+
+            return res.status(200).json([entity])
+        } catch (e) {
+            console.log(e)
+            return next(ApiError.internal(["nftGetByHash error"]))
+        }
+    }
+
     async getAllByUserId(req, res, next) {
         try {
             const errors = validationResult(req)
@@ -91,6 +111,68 @@ class NftEntityController {
         } catch (e) {
             console.log(e)
             return next(ApiError.internal(["nftGetAllByUserId error"]))
+        }
+    }
+
+    async getAllByNameAndTags(req, res, next) {
+        try {
+            const errors = validationResult(req)
+            if (!errors.isEmpty()) {
+                return next(ApiError.badRequest(["nftGetAllByName error", ...messagesFromErrors(errors)]))
+            }
+
+            let {count, page, name, tags} = req.query
+            count = parseInt(count) || 10
+            page = parseInt(page) || 1
+            name ||= ""
+            tags ||= []
+            const offset = page * count - count
+
+            const tempentities = await NftEntity.findAll(
+                {
+                    attributes: {
+                        include: [[Sequelize.fn("COUNT", Sequelize.col("tags.id")), "tagCount"]]
+                    },
+                    where: {
+                        name: { [Op.startsWith]: name }
+                    },
+                    include: [ {
+                        model: Tag,
+                        through: NftEntity_Tag,
+                        attributes: {},
+                        where: {
+                            name: tags.length === 0 ? { [Op.like]: "%" } : { [Op.in]: tags }
+                        }
+                    } ],
+                    group: ["`nftEntity`.`id`"],
+                    having: {
+                        tagCount: tags.length === 0 ? { [Op.ne]: -1 } : tags.length
+                    },
+                    limit: count,
+                    subQuery: false,
+                    offset
+                })
+
+            const ids = tempentities.map((value, index) => { return value.id })
+
+            const entities = await NftEntity.findAll(
+                {
+                    where: {
+                        id: { [Op.in]: ids }
+                    },
+                    include: [ {
+                        model: Tag,
+                        through: NftEntity_Tag,
+                    } ],
+                    limit: count,
+                    subQuery: false,
+                    offset
+                })
+
+            return res.status(200).json([...entities])
+        } catch (e) {
+            console.log(e)
+            return next(ApiError.internal(["nftGetAllByName error"]))
         }
     }
 }

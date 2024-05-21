@@ -12,8 +12,15 @@ router.post("/create/",
     check("tags", "Invalid tags").isArray(),
     nftCreator.create)
 
+router.get("/get/:hash",
+    check("hash", "Invalid hash").notEmpty(),
+    nftCreator.getByHash)
+
 router.get("/getAll/:userId",
     check("userId", "Invalid userId").isNumeric(),
     nftCreator.getAllByUserId)
+
+router.get("/getAll",
+    nftCreator.getAllByNameAndTags)
 
 module.exports = router

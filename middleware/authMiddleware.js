@@ -1,4 +1,5 @@
 ﻿const jwt = require('jsonwebtoken')
+const ApiError = require("../errors/apiError");
 
 /**
  * req.jwtDecoded
@@ -12,12 +13,12 @@ module.exports = function (req, res, next) {
         // "Bearer token_body"
         const token = req.headers.authorization?.split( ' ' )[1]
         if(!token) {
-            return res.status(403).json( {message: "user is not register"} )
+            return next( ApiError.badRequest(["user is not register"]) )
         }
         req.jwtDecoded = jwt.verify(token, process.env.JWT_SECRETKEY)
         return next()
     } catch (e) {
         console.log(e)
-        return res.status(403).json( { message: "user is not register" } )
+        return next( ApiError.badRequest(["user is not register"]))
     }
 }
