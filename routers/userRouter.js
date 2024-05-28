@@ -17,6 +17,9 @@ router.put ('/updatePassword',
     check("newPassword", "Incorrect new password").isLength({min: 4, max: 20}),
     controller.updatePassword)
 
+/*
+query: count, page, name
+ */
 router.get('/',
     controller.getAll)
 

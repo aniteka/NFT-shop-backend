@@ -73,14 +73,14 @@ class UserController {
 
     async getAll(req, res, next) {
         try {
-            let {count, page, username} = req.query
+            let {count, page, name} = req.query
             count = parseInt(count) || 10
             page = parseInt(page) || 1
-            username ||= ""
+            name ||= ""
             const offset = page * count - count
 
             const user = await User.findAll({
-                where: {name: { [Op.startsWith]: username }},
+                where: {name: { [Op.startsWith]: name }},
                 limit: count, offset})
             return res.json(user)
         } catch (e) {
