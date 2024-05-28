@@ -6,7 +6,7 @@ const models = require('./models/models')
 const apiRouter = require('./routers/index')
 const cors = require('cors')
 const errorHandlerMiddleware = require('./middleware/errorHandlerMiddleware')
-const {NftEntity} = require("./models/models");
+const {NftEntity, User} = require("./models/models");
 const fileUpload = require("express-fileupload")
 const path = require("path")
 
@@ -25,6 +25,7 @@ const main = async function () {
     try {
         await sequelize.authenticate();
         await sequelize.sync();
+
         app.listen(PORT, function () {
             console.log(`Listen on port ${PORT}`)
         })
