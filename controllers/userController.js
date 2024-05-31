@@ -4,6 +4,8 @@ const {validationResult} = require("express-validator");
 const {messagesFromErrors} = require("../utils");
 const bcrypt = require("bcrypt");
 const {Op} = require("sequelize")
+const uuid = require("uuid");
+const path = require("path");
 
 class UserController {
     async updateInfo(req, res, next) {
@@ -16,7 +18,20 @@ class UserController {
                 name: newName = undefined,
                 bio: newBio = undefined,
                 email: newEmail = undefined,
-                links: newLinks = undefined} = req.body
+                links: newLinks = undefined} = req.body || {}
+
+            const {
+                avatarImage: newAvatarImage = undefined,
+                backgroundImage: newBackgroundImage = undefined} = req.files || {}
+
+            if(newAvatarImage) {
+                var newAvatarImageFilename = uuid.v4() + ".jpg"
+                await newAvatarImage.mv(path.resolve(__dirname, "..", process.env.STATIC_FOLDER, newAvatarImageFilename))
+            }
+            if(newBackgroundImage) {
+                var newBackgroundImageFilename = uuid.v4() + ".jpg"
+                await newBackgroundImage.mv(path.resolve(__dirname, "..", process.env.STATIC_FOLDER, newBackgroundImageFilename))
+            }
 
             const user = await User.findOne( {
                 where: { id: req.jwtDecoded.id }
@@ -35,6 +50,9 @@ class UserController {
             user.name = newName || user.name
             user.bio = newBio || user.bio
             user.links = newLinks || user.links
+
+            user.avatarImage = newAvatarImageFilename || user.avatarImage
+            user.backgroundImage = newBackgroundImageFilename || user.backgroundImage
 
             await user.save()
 

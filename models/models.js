@@ -10,6 +10,8 @@ const User = sequelize.define('user', {
     bio: { type: DataTypes.TEXT, defaultValue: "DEFAULT BIO" },
     links: { type: DataTypes.TEXT, defaultValue: "{ \"Instagram\": \"\" ,  \"X\": \"\" }" },
     role: { type: DataTypes.ENUM( 'USER', 'ADMIN' ), allowNull: false },
+    avatarImage: { type: DataTypes.STRING },
+    backgroundImage: { type: DataTypes.STRING },
 })
 
 const Creator = sequelize.define('creator', {
