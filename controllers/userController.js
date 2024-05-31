@@ -127,6 +127,22 @@ class UserController {
             return next(ApiError.internal(["getOne error"]))
         }
     }
+
+    async getOneByJwt(req, res, next) {
+        try{
+            const id = req.jwtDecoded.id;
+            const user = await User.findOne({
+                where: {id}
+            })
+            if(!user) {
+                return next(ApiError.badRequest([`id ${id} is incorrect`]))
+            }
+            return res.json(user)
+        } catch (e) {
+            console.log(e)
+            return next(ApiError.internal(["getOne error"]))
+        }
+    }
 }
 
 module.exports = new UserController();

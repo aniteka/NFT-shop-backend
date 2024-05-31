@@ -24,10 +24,14 @@ router.put ('/updatePassword',
 /*
 query: count, page, name
  */
-router.get('/',
+router.get('/getAll',
     controller.getAll)
 
 router.get('/:id',
     controller.getOne)
+
+router.get('/',
+    authMiddleware,
+    controller.getOneByJwt)
 
 module.exports = router
