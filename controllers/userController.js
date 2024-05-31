@@ -12,7 +12,11 @@ class UserController {
             if(!errors.isEmpty()){
                 return next(ApiError.badRequest( ["updateInfo error", ...messagesFromErrors(errors)] ))
             }
-            const {name: newName, bio: newBio, email: newEmail} = req.body
+            const {
+                name: newName = undefined,
+                bio: newBio = undefined,
+                email: newEmail = undefined,
+                links: newLinks = undefined} = req.body
 
             const user = await User.findOne( {
                 where: { id: req.jwtDecoded.id }
@@ -30,6 +34,7 @@ class UserController {
 
             user.name = newName || user.name
             user.bio = newBio || user.bio
+            user.links = newLinks || user.links
 
             await user.save()
 

@@ -9,6 +9,10 @@ const router = Router()
 router.put ('/updateInfo',
     authMiddleware,
     check("email", "Incorrect email").if((email, _) => email).isEmail(),
+    check("links")
+        .if((links, _) => links)
+        .custom(links => JSON.parse(links)["X"] !== undefined).withMessage("Link to X is undefined")
+        .custom(links => JSON.parse(links)["Instagram"] !== undefined).withMessage("Link to Instagram is undefined"),
     controller.updateInfo)
 
 router.put ('/updatePassword',
