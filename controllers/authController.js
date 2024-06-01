@@ -2,7 +2,7 @@
 const {validationResult} = require("express-validator");
 const jwt = require("jsonwebtoken")
 const ApiError = require("../errors/apiError");
-const {messagesFromErrors} = require("../utils")
+const {messagesFromErrors} = require("../utilities/utilities")
 const bcrypt = require("bcrypt");
 const {Op} = require("sequelize");
 

@@ -1,6 +1,6 @@
 ﻿const {validationResult} = require("express-validator");
 const ApiError = require("../errors/apiError");
-const {messagesFromErrors} = require("../utils");
+const {messagesFromErrors} = require("../utilities/utilities");
 const { Tag, NftEntity } = require("../models/models")
 
 class TagController {

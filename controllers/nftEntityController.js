@@ -1,6 +1,6 @@
 ﻿const {validationResult} = require("express-validator");
 const ApiError = require("../errors/apiError");
-const {messagesFromErrors} = require("../utils");
+const {messagesFromErrors} = require("../utilities/utilities");
 const {NftEntity, Tag, Creator, User, NftEntity_Tag} = require("../models/models");
 const uuid = require("uuid")
 const path = require("path")
@@ -63,6 +63,27 @@ class NftEntityController {
         } catch (e) {
             console.log(e)
             return next(ApiError.internal(["nftCreate error"]))
+        }
+    }
+
+    async sendToUser(req, res, next) {
+        try {
+            const errors = validationResult(req);
+            if (!errors.isEmpty()) {
+                return next(ApiError.badRequest([...messagesFromErrors(errors)]));
+            }
+
+            const newOwner = req.nsValidatorResult.newOwner
+            const nft = req.nsValidatorResult.nft
+
+            nft.ownerId = newOwner.id || nft.ownerId
+
+            await nft.save()
+
+            return res.status(200).json({message: "done"})
+        } catch (e) {
+            console.log(e)
+            return next(ApiError.internal(["sendToUser error"]))
         }
     }
 

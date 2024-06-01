@@ -1,6 +1,6 @@
 ﻿const { User, Creator } = require('../models/models')
 const {validationResult} = require("express-validator");
-const {messagesFromErrors} = require("../utils")
+const {messagesFromErrors} = require("../utilities/utilities")
 const ApiError = require("../errors/apiError");
 
 

@@ -8,17 +8,22 @@ const router = Router()
 
 router.put ('/updateInfo',
     authMiddleware,
-    check("email", "Incorrect email").if((email, _) => email).isEmail(),
+    check("email", "Incorrect email")
+        .optional()
+        .trim()
+        .isEmail(),
     check("links")
-        .if((links, _) => links)
+        .optional()
         .custom(links => JSON.parse(links)["X"] !== undefined).withMessage("Link to X is undefined")
         .custom(links => JSON.parse(links)["Instagram"] !== undefined).withMessage("Link to Instagram is undefined"),
     controller.updateInfo)
 
 router.put ('/updatePassword',
     authMiddleware,
-    check("oldPassword", "Incorrect old password").isLength({min: 4, max: 20}),
-    check("newPassword", "Incorrect new password").isLength({min: 4, max: 20}),
+    check("oldPassword", "Incorrect old password")
+        .isLength({min: 4, max: 20}),
+    check("newPassword", "Incorrect new password")
+        .isLength({min: 4, max: 20}),
     controller.updatePassword)
 
 /*
