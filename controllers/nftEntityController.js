@@ -20,7 +20,7 @@ class NftEntityController {
             if(!image) {
                 return next(ApiError.badRequest(["nftCreate error", "image is not set"]))
             }
-            const imageFilename = uuid.v4() + ".jpg"
+            const imageFilename = uuid.v4() + image.name.substring(image.name.lastIndexOf("."))
             await image.mv(path.resolve(__dirname, "..", process.env.STATIC_FOLDER, imageFilename))
 
             const {id: ownerId} = req.jwtDecoded

@@ -42,6 +42,12 @@ router.get("/getAll/:username",
         .notEmpty().bail()
         .custom(usernameBaseValidator).bail()
         .custom(usernameDbExistsValidator("user")).withMessage("Cant find user with such username"),
+    check("count", "Invalid count")
+        .optional()
+        .isInt(),
+    check("page", "Invalid page")
+        .optional()
+        .isInt(),
     nftCreator.getAllByUsername);
 
 router.get("/getAll",
