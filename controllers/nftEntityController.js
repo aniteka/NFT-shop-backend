@@ -106,11 +106,11 @@ class NftEntityController {
         }
     }
 
-    async getAllByUserId(req, res, next) {
+    async getAllByUsername(req, res, next) {
         try {
             const errors = validationResult(req)
             if (!errors.isEmpty()) {
-                return next(ApiError.badRequest(["nftGetAllByUserId error", ...messagesFromErrors(errors)]))
+                return next(ApiError.badRequest([...messagesFromErrors(errors)]))
             }
 
             let {count, page} = req.query
@@ -118,13 +118,10 @@ class NftEntityController {
             page = parseInt(page) || 1
             const offset = page * count - count
 
-            const {userId} = req.params
-            const user = await User.findOne({where: {id: userId}})
-            if(!user)
-                return next(ApiError.badRequest(["nftGetAllByUserId", "bad user id"]))
+            const {user} = req.nsValidatorResult
 
             const entities = await NftEntity.findAll(
-                {where: {ownerId: userId},
+                {where: {ownerId: user.id},
                     limit: count,
                     offset})
 

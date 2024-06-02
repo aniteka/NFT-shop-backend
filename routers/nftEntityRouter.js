@@ -1,6 +1,6 @@
 ﻿const express = require("express");
 const nftCreator = require("../controllers/nftEntityController");
-const {check} = require("express-validator");
+const {check, oneOf} = require("express-validator");
 const authMiddleware = require("../middleware/authMiddleware");
 const {usernameBaseValidator, usernameDbExistsValidator, nftHashDbExistsValidator} = require("../utilities/validators");
 
@@ -36,10 +36,13 @@ router.get("/get/:hash",
         .notEmpty(),
     nftCreator.getByHash);
 
-router.get("/getAll/:userId",
-    check("userId", "Invalid userId")
-        .isNumeric(),
-    nftCreator.getAllByUserId);
+router.get("/getAll/:username",
+    check("username", "Invalid username")
+        .trim()
+        .notEmpty().bail()
+        .custom(usernameBaseValidator).bail()
+        .custom(usernameDbExistsValidator("user")).withMessage("Cant find user with such username"),
+    nftCreator.getAllByUsername);
 
 router.get("/getAll",
     nftCreator.getAllByNameAndTags);
