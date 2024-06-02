@@ -3,6 +3,7 @@ const controller = require('../controllers/userController')
 const {check, body} = require('express-validator')
 const authMiddleware = require('../middleware/authMiddleware')
 const roleMiddleware = require('../middleware/roleMiddleware')
+const {usernameBaseValidator, usernameDbExistsValidator} = require("../utilities/validators");
 
 const router = Router()
 
@@ -32,7 +33,11 @@ query: count, page, name
 router.get('/getAll',
     controller.getAll)
 
-router.get('/:id',
+router.get("/:username",
+    check("username", "Invalid username")
+        .notEmpty().bail()
+        .custom(usernameBaseValidator).bail()
+        .custom(usernameDbExistsValidator("user")).withMessage("Cant find user with such username"),
     controller.getOne)
 
 router.get('/',

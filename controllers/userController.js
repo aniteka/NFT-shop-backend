@@ -114,14 +114,15 @@ class UserController {
 
     async getOne(req, res, next) {
         try{
-            const {id} = req.params
-            const user = await User.findOne({
-                where: {id}
-            })
-            if(!user) {
-                return next(ApiError.badRequest([`id ${id} is incorrect`]))
+            const errors = validationResult(req)
+            if(!errors.isEmpty()){
+                return next(ApiError.badRequest( [...messagesFromErrors(errors)] ))
             }
-            return res.json(user)
+
+            let {user} = req.nsValidatorResult
+            user.password = undefined
+
+            return res.status(200).json(user)
         } catch (e) {
             console.log(e)
             return next(ApiError.internal(["getOne error"]))
