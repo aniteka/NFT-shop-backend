@@ -31,6 +31,15 @@ router.post("/sendToUser/",
         }).withMessage("Current user is not a owner of this nft"),
     nftCreator.sendToUser);
 
+// TODO DEBUG ONLY
+router.post("/buy/",
+    authMiddleware,
+    check("hash", "Invalid hash")
+        .trim()
+        .notEmpty().bail()
+        .custom(nftHashDbExistsValidator("nft")).withMessage("Cant find nft with such hash").bail(),
+    nftCreator.buyNft);
+
 router.get("/get/:hash",
     check("hash", "Invalid hash")
         .notEmpty(),

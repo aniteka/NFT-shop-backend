@@ -87,6 +87,27 @@ class NftEntityController {
         }
     }
 
+    async buyNft(req, res, next) {
+        try {
+            const errors = validationResult(req)
+            if (!errors.isEmpty()) {
+                return next(ApiError.badRequest([...messagesFromErrors(errors)]))
+            }
+
+            const {id: newOwnerId} = req.jwtDecoded;
+            const {nft} = req.nsValidatorResult;
+
+            nft.ownerId = newOwnerId;
+
+            await nft.save();
+
+            return res.status(200).json({ message: "Done" })
+        } catch (e) {
+            console.log(e)
+            return next(ApiError.internal(["buyNft error"]))
+        }
+    }
+
     async getByHash(req, res, next) {
         try {
             const errors = validationResult(req)
