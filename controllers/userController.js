@@ -40,7 +40,7 @@ class UserController {
                 return next(ApiError.badRequest( ["token error"] ))
             }
 
-            if(newEmail) {
+            if(newEmail && newEmail !== user.email) {
                 if(await User.findOne({ where: { email: newEmail } })) {
                     return next(ApiError.badRequest( ["invalid email"] ))
                 }
