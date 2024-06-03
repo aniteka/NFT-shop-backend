@@ -129,6 +129,22 @@ class UserController {
         }
     }
 
+    async getOneById(req, res, next) {
+        try{
+            const errors = validationResult(req)
+            if(!errors.isEmpty()){
+                return next(ApiError.badRequest( [...messagesFromErrors(errors)] ))
+            }
+
+            let {user} = req.nsValidatorResult
+
+            return res.status(200).json(user)
+        } catch (e) {
+            console.log(e)
+            return next(ApiError.internal(["getOne error"]))
+        }
+    }
+
     async getOneByJwt(req, res, next) {
         try{
             const id = req.jwtDecoded.id;
